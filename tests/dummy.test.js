@@ -9,7 +9,7 @@ test('dummy returns one', () => {
   assert.strictEqual(result, 1)
 })
 
-describe('Total likes', () => {
+describe('Blogs tests', () => {
   const listWithOneBlog = [
     {
       _id: '5a422aa71b54a676234d17f8',
@@ -77,7 +77,7 @@ describe('Total likes', () => {
     assert.strictEqual(result, 5)
   })
 
-  test('The blog wiht the most likes', () => {
+  test('The blog with the most likes', () => {
     const result = listHelper.favoriteBlog(blogs)
     assert.deepStrictEqual(result,
       {
