@@ -6,10 +6,10 @@ POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
 {
-  "title": "Test title",
+  "title": "2 Test title",
   "author": "Me",
   "url": "https://examplelink.edu",
-  "likes": 301
+  "likes": 234
 }
 
 ###
