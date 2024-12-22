@@ -3,30 +3,11 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const assert = require('node:assert')
-
+const helper = require('./test_helper')
 
 const api = supertest(app)
 
-// Initialize the test database before executing all tests
-
 const Blog = require('../models/blog')
-
-const initialBlogs = [
-  {
-    'title': '1 Initial title',
-    'author': 'Me',
-    'url': 'https://examplelink.edu',
-    'likes': 301,
-    'id': '6761f3ac9946da04b76cab37'
-  },
-  {
-    'title': '2 Initial title',
-    'author': 'Me',
-    'url': 'https://examplelink.edu',
-    'likes': 234,
-    'id': '6764a5d869c7d296d7075739'
-  }
-]
 
 // Database is cleared out at the beginning
 // After that initial blogs will be stored in database
@@ -34,9 +15,9 @@ const initialBlogs = [
 
 beforeEach(async () => {
   await Blog.deleteMany({})
-  let blogObject = new Blog(initialBlogs[0])
+  let blogObject = new Blog(helper.initialBlogs[0])
   await blogObject.save()
-  blogObject = new Blog(initialBlogs[1])
+  blogObject = new Blog(helper.initialBlogs[1])
   await blogObject.save()
 })
 
@@ -70,10 +51,10 @@ describe('Database tests', () => {
       .expect('Content-Type', /application\/json/)
   })
 
-  test('There are two blogs', async () => {
+  test('All blogs are returned', async () => {
     const response = await api.get('/api/blogs')
 
-    assert.strictEqual(response.body.length, initialBlogs.length)
+    assert.strictEqual(response.body.length, helper.initialBlogs.length)
   })
 
   test('Somewhere in blogs there is a title "1 Initial title"', async () => {
@@ -91,8 +72,7 @@ describe('Database tests', () => {
       'title': 'Test blog',
       'author': 'Me',
       'url': 'https://examplelink.edu',
-      'likes': 909,
-      'id': '6764a5d869c7d296d7075738'
+      'likes': 909
     }
 
     await api
@@ -101,12 +81,10 @@ describe('Database tests', () => {
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
-    const response = await api.get('/api/blogs')
+    const blogsAtEnd = await helper.blogsInDb()
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
 
-    const titles = response.body.map(blog => blog.title)
-
-    assert.strictEqual(response.body.length, initialBlogs.length + 1)
-
+    const titles = blogsAtEnd.map(blog => blog.title)
     assert(titles.includes('Test blog'))
   })
 
@@ -116,8 +94,7 @@ describe('Database tests', () => {
     const newBlog = {
       'author': 'Me',
       'url': 'https://examplelink.edu',
-      'likes': 909,
-      'id': '6764a5d869c7d296d7075738'
+      'likes': 909
     }
 
     await api
@@ -125,9 +102,24 @@ describe('Database tests', () => {
       .send(newBlog)
       .expect(400)
 
-    const response = await api.get('/api/blogs')
+    const blogsAtEnd = await helper.blogsInDb()
 
-    assert.strictEqual(response.body.length, initialBlogs.length)
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
+  })
+
+  // Test for check of ability of fetching individual blog
+
+  test('A specific blog can be viewed', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+
+    const blogToView = blogsAtStart[0]
+
+    const resultBlog = await api
+      .get(`/api/blogs/${blogToView.id}`)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    assert.deepStrictEqual(resultBlog.body, blogToView)
   })
 
   after(async () => {
