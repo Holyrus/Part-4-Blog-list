@@ -83,6 +83,53 @@ describe('Database tests', () => {
     assert.strictEqual(contents.includes('1 Initial title'), true)
   })
 
+  // Adding new blog and verifies the number of blogs returned by
+  // the API increases adn that the newly added blog is in the list.
+
+  test('A valid blog can be added ', async () => {
+    const newBlog = {
+      'title': 'Test blog',
+      'author': 'Me',
+      'url': 'https://examplelink.edu',
+      'likes': 909,
+      'id': '6764a5d869c7d296d7075738'
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+
+    const titles = response.body.map(blog => blog.title)
+
+    assert.strictEqual(response.body.length, initialBlogs.length + 1)
+
+    assert(titles.includes('Test blog'))
+  })
+
+  // Test that verifies that a blog without title won't not be saved into the DB
+
+  test('Blog without title is not added', async () => {
+    const newBlog = {
+      'author': 'Me',
+      'url': 'https://examplelink.edu',
+      'likes': 909,
+      'id': '6764a5d869c7d296d7075738'
+    }
+
+    await api
+      .post ('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+
+    const response = await api.get('/api/blogs')
+
+    assert.strictEqual(response.body.length, initialBlogs.length)
+  })
+
   after(async () => {
     await mongoose.connection.close()
   })
