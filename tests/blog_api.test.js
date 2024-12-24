@@ -15,10 +15,35 @@ const Blog = require('../models/blog')
 
 beforeEach(async () => {
   await Blog.deleteMany({})
-  let blogObject = new Blog(helper.initialBlogs[0])
-  await blogObject.save()
-  blogObject = new Blog(helper.initialBlogs[1])
-  await blogObject.save()
+  console.log('DB cleared')
+
+  // This code for executing the promises it receives in parallel
+
+  const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
+  const promiseArray = blogObjects.map(blog => blog.save())
+  await Promise.all(promiseArray)
+  console.log('Operation done')
+
+  // ------------------------------------------
+
+  // This code for executing promises in a particular order
+
+  // for (let blog of helper.initialBlogs) {
+  //   let blogObject = new Blog(blog)
+  //   await blogObject.save()
+  // }
+
+  // ------------------------------------------
+
+  // This code for saving one individual object
+
+  // let blogObject = new Blog(helper.initialBlogs[0])
+  // await blogObject.save()
+
+  // blogObject = new Blog(helper.initialBlogs[1])
+  // await blogObject.save()
+
+  // ------------------------------------------
 })
 
 // ------------------
@@ -45,6 +70,7 @@ describe('Database tests', () => {
   // npm test -- --test-name-pattern="blogs"
 
   test('Blogs are returned as json', async () => {
+    console.log('Entered test')
     await api
       .get('/api/blogs')
       .expect(200)
@@ -120,6 +146,22 @@ describe('Database tests', () => {
       .expect('Content-Type', /application\/json/)
 
     assert.deepStrictEqual(resultBlog.body, blogToView)
+  })
+
+  test('A specific blog can be deleted', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    const titles = blogsAtEnd.map(b => b.title)
+    assert(!titles.includes(blogToDelete.title))
+
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
   })
 
   after(async () => {
