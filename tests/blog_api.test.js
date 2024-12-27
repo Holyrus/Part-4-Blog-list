@@ -89,7 +89,24 @@ describe('Database tests', () => {
     })
   })
 
-  // test('If likes property is missing it will default to the value 0')
+  test('Defaults likes to 0 if missing', async () => {
+    const blogWithoutLikes = {
+      'title': 'Without likes',
+      'author': 'Me',
+      'url': 'https://examplelink.edu',
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(blogWithoutLikes)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    assert.strictEqual(blogsAtEnd[2].likes, 0)
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
+  })
 
   // test('Somewhere in blogs there is a title "1 Initial title"', async () => {
   //   const response = await api.get('/api/blogs')
@@ -122,24 +139,43 @@ describe('Database tests', () => {
     assert(titles.includes('Test blog'))
   })
 
-  // // Test that verifies that a blog without title won't not be saved into the DB
+  // Test that verifies that a blog without title won't be saved into the DB
 
-  // test('Blog without title is not added', async () => {
-  //   const newBlog = {
-  //     'author': 'Me',
-  //     'url': 'https://examplelink.edu',
-  //     'likes': 909
-  //   }
+  test('Blog without title is not added', async () => {
+    const newBlog = {
+      'author': 'Me',
+      'url': 'https://examplelink.edu',
+      'likes': 909
+    }
 
-  //   await api
-  //     .post ('/api/blogs')
-  //     .send(newBlog)
-  //     .expect(400)
+    await api
+      .post ('/api/blogs')
+      .send(newBlog)
+      .expect(400)
 
-  //   const blogsAtEnd = await helper.blogsInDb()
+    const blogsAtEnd = await helper.blogsInDb()
 
-  //   assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
-  // })
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
+  })
+
+  // Test that verifies that a blog without url won't be saved into the DB
+
+  test('Blog without url is not added', async () => {
+    const newBlog = {
+      'title': 'Without url',
+      'author': 'Me',
+      'likes': 234
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
+  })
 
   // // Test for check of ability of fetching individual blog
 

@@ -7,15 +7,13 @@ const initialBlogs = [
     'title': '1 Initial title',
     'author': 'Me',
     'url': 'https://examplelink.edu',
-    'likes': 301,
-    'id': '6761f3ac9946da04b76cab37'
+    'likes': 301
   },
   {
     'title': '2 Initial title',
     'author': 'Me',
     'url': 'https://examplelink.edu',
-    'likes': 234,
-    'id': '6764a5d869c7d296d7075739'
+    'likes': 234
   }
 ]
 
