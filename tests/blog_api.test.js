@@ -9,51 +9,8 @@ const api = supertest(app)
 
 const Blog = require('../models/blog')
 
-// Database is cleared out at the beginning
-// After that initial blogs will be stored in database
-// Doing this for ensuring that every test run DB is the same
 
-beforeEach(async () => {
-  await Blog.deleteMany({})
-
-  // This code for executing the promises it receives in parallel
-
-  const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
-  const promiseArray = blogObjects.map(blog => blog.save())
-  await Promise.all(promiseArray)
-
-  // ------------------------------------------
-
-  // This code for executing promises in a particular order
-
-  // for (let blog of helper.initialBlogs) {
-  //   let blogObject = new Blog(blog)
-  //   await blogObject.save()
-  // }
-
-  // ------------------------------------------
-
-  // If we have initial test DB in helper
-
-  // await Blog.deleteMany({})
-  // await Blog.insertMany(helper.initialBlogs)
-
-  // ------------------------------------------
-
-  // This code for saving one individual object
-
-  // let blogObject = new Blog(helper.initialBlogs[0])
-  // await blogObject.save()
-
-  // blogObject = new Blog(helper.initialBlogs[1])
-  // await blogObject.save()
-
-  // ------------------------------------------
-})
-
-// ------------------
-
-describe('Database tests', () => {
+describe('When there is initialy some blogs saved', () => {
 
   // For running test one by one we can use following syntax:
   // test.only('Blogs are returned as json', async () => {
@@ -74,6 +31,52 @@ describe('Database tests', () => {
   // or if every test name that contain specific word:
   // npm test -- --test-name-pattern="blogs"
 
+  // -------------------------------------------------------
+
+  // Database is cleared out at the beginning
+  // After that initial blogs will be stored in database
+  // Doing this for ensuring that every test run DB is the same
+
+  beforeEach(async () => {
+    await Blog.deleteMany({})
+
+    // This code for executing the promises it receives in parallel
+
+    const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
+    const promiseArray = blogObjects.map(blog => blog.save())
+    await Promise.all(promiseArray)
+
+    // ------------------------------------------
+
+    // This code for executing promises in a particular order
+
+    // for (let blog of helper.initialBlogs) {
+    //   let blogObject = new Blog(blog)
+    //   await blogObject.save()
+    // }
+
+    // ------------------------------------------
+
+    // If we have initial test DB in helper
+
+    // await Blog.deleteMany({})
+    // await Blog.insertMany(helper.initialBlogs)
+
+    // ------------------------------------------
+
+    // This code for saving one individual object
+
+    // let blogObject = new Blog(helper.initialBlogs[0])
+    // await blogObject.save()
+
+    // blogObject = new Blog(helper.initialBlogs[1])
+    // await blogObject.save()
+
+    // ------------------------------------------
+  })
+
+  // -------------------------------------------------
+
   test('Blogs are returned as json', async () => {
     console.log('Entered test')
     await api
@@ -88,33 +91,6 @@ describe('Database tests', () => {
     assert.strictEqual(response.body.length, helper.initialBlogs.length)
   })
 
-  test('The unique identifier is "id"', async () => {
-    const response = await api.get('/api/blogs')
-
-    response.body.forEach(item => {
-      assert.strictEqual(Object.prototype.hasOwnProperty.call(item, 'id'), true)
-    })
-  })
-
-  test('Defaults likes to 0 if missing', async () => {
-    const blogWithoutLikes = {
-      'title': 'Without likes',
-      'author': 'Me',
-      'url': 'https://examplelink.edu',
-    }
-
-    await api
-      .post('/api/blogs')
-      .send(blogWithoutLikes)
-      .expect(201)
-      .expect('Content-Type', /application\/json/)
-
-    const blogsAtEnd = await helper.blogsInDb()
-
-    assert.strictEqual(blogsAtEnd[2].likes, 0)
-    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
-  })
-
   // test('Somewhere in blogs there is a title "1 Initial title"', async () => {
   //   const response = await api.get('/api/blogs')
 
@@ -122,152 +98,193 @@ describe('Database tests', () => {
   //   assert.strictEqual(titles.includes('1 Initial title'), true)
   // })
 
-  // Adding new blog and verifies the number of blogs returned by
-  // the API increases and that the newly added blog is in the list.
+  // describe('Viewing a specific blog', () => {
 
-  test('A valid blog can be added ', async () => {
-    const newBlog = {
-      'title': 'Test blog',
-      'author': 'Me',
-      'url': 'https://examplelink.edu',
-      'likes': 909
-    }
+  //   // Test for check of ability of fetching individual blog
 
-    await api
-      .post('/api/blogs')
-      .send(newBlog)
-      .expect(201)
-      .expect('Content-Type', /application\/json/)
+  //   test('A specific blog can be viewed', async () => {
+  //     const blogsAtStart = await helper.blogsInDb()
 
-    const blogsAtEnd = await helper.blogsInDb()
-    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
+  //     const blogToView = blogsAtStart[0]
 
-    const titles = blogsAtEnd.map(blog => blog.title)
-    assert(titles.includes('Test blog'))
-  })
+  //     const resultBlog = await api
+  //       .get(`/api/blogs/${blogToView.id}`)
+  //       .expect(200)
+  //       .expect('Content-Type', /application\/json/)
 
-  // Test that verifies that a blog without title won't be saved into the DB
+  //     assert.deepStrictEqual(resultBlog.body, blogToView)
+  //   })
 
-  test('Blog without title is not added', async () => {
-    const newBlog = {
-      'author': 'Me',
-      'url': 'https://examplelink.edu',
-      'likes': 909
-    }
+  //   // Test for failing with status 404 if blog does not exist
 
-    await api
-      .post ('/api/blogs')
-      .send(newBlog)
-      .expect(400)
+  //   test('Fails with status 404 if blog does not exist', async () => {
+  //     const validNoneExistingId = await helper.nonExistingId()
 
-    const blogsAtEnd = await helper.blogsInDb()
+  //     await api
+  //       .get(`/api/blogs/${validNoneExistingId}`)
+  //       .expect(404)
+  //   })
 
-    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
-  })
+  //   // Test for failing with status 400 if id is invalid
 
-  // Test that verifies that a blog without url won't be saved into the DB
+  //   test('Fails with status 400 id is invalid', async () => {
+  //     const invalidId = '5a3d5da59070081a82a3445'
 
-  test('Blog without url is not added', async () => {
-    const newBlog = {
-      'title': 'Without url',
-      'author': 'Me',
-      'likes': 234
-    }
+  //     await api
+  //       .get(`/api/blogs/${invalidId}`)
+  //       .expect(400)
+  //   })
 
-    await api
-      .post('/api/blogs')
-      .send(newBlog)
-      .expect(400)
-
-    const blogsAtEnd = await helper.blogsInDb()
-
-    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
-  })
-
-  // Test for check of ability of fetching individual blog
-
-  // test('A specific blog can be viewed', async () => {
-  //   const blogsAtStart = await helper.blogsInDb()
-
-  //   const blogToView = blogsAtStart[0]
-
-  //   const resultBlog = await api
-  //     .get(`/api/blogs/${blogToView.id}`)
-  //     .expect(200)
-  //     .expect('Content-Type', /application\/json/)
-
-  //   assert.deepStrictEqual(resultBlog.body, blogToView)
   // })
 
-  // -----------------------------------------------------
+  describe('Addition of a new blog', () => {
 
-  test('A specific blog can be deleted', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-    const blogToDelete = blogsAtStart[0]
+    // Adding new blog and verifies the number of blogs returned by
+    // the API increases and that the newly added blog is in the list.
 
-    await api
-      .delete(`/api/blogs/${blogToDelete.id}`)
-      .expect(204)
+    test('A valid blog can be added ', async () => {
+      const newBlog = {
+        'title': 'Test blog',
+        'author': 'Me',
+        'url': 'https://examplelink.edu',
+        'likes': 909
+      }
 
-    const blogsAtEnd = await helper.blogsInDb()
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
 
-    const titles = blogsAtEnd.map(b => b.title)
-    assert(!titles.includes(blogToDelete.title))
+      const blogsAtEnd = await helper.blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
 
-    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+      const titles = blogsAtEnd.map(blog => blog.title)
+      assert(titles.includes('Test blog'))
+    })
+
+    // Test that verifies that a blog without title won't be saved into the DB
+
+    test('Fails with status 400 if data invalid (Blog without title not added)', async () => {
+      const newBlog = {
+        'author': 'Me',
+        'url': 'https://examplelink.edu',
+        'likes': 909
+      }
+
+      await api
+        .post ('/api/blogs')
+        .send(newBlog)
+        .expect(400)
+
+      const blogsAtEnd = await helper.blogsInDb()
+
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
+    })
+
+    // Test that verifies that a blog without url won't be saved into the DB
+
+    test('Blog without url is not added', async () => {
+      const newBlog = {
+        'title': 'Without url',
+        'author': 'Me',
+        'likes': 234
+      }
+
+      await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(400)
+
+      const blogsAtEnd = await helper.blogsInDb()
+
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
+    })
+
+    // Test that verifies if 'likes' value is missing it will defaults it to 0
+
+    test('Defaults likes to 0 if missing', async () => {
+      const blogWithoutLikes = {
+        'title': 'Without likes',
+        'author': 'Me',
+        'url': 'https://examplelink.edu',
+      }
+
+      await api
+        .post('/api/blogs')
+        .send(blogWithoutLikes)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+      const blogsAtEnd = await helper.blogsInDb()
+
+      assert.strictEqual(blogsAtEnd[2].likes, 0)
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
+    })
+
   })
 
-  // -------------------------------------------------------
+  describe('Deletion of a blog', () => {
 
-  // Test for updating the number of likes for a blog post
+    // Test that verifies that a specific blog can be deleted from DB
 
-  test('Number of likes in a specific blog can be updated', async () => {
-    const blogsAtStart = await helper.blogsInDb()
-    const blogToUpdate = blogsAtStart[0]
+    test('A specific blog can be deleted', async () => {
+      const blogsAtStart = await helper.blogsInDb()
+      const blogToDelete = blogsAtStart[0]
 
-    const updatedBlog = {
-      'title': '1 Initial title',
-      'author': 'Me',
-      'url': 'https://examplelink.edu',
-      'likes': 999
-    }
+      await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(204)
 
-    await api
-      .put(`/api/blogs/${blogToUpdate.id}`)
-      .send(updatedBlog)
-      .expect(200)
+      const blogsAtEnd = await helper.blogsInDb()
 
-    const blogsAtEnd = await helper.blogsInDb()
+      const titles = blogsAtEnd.map(b => b.title)
+      assert(!titles.includes(blogToDelete.title))
 
-    assert.strictEqual(blogsAtEnd[0].likes, 999)
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+    })
+
   })
 
-  // -------------------------------------------------------
+  describe('Updating and checking blogs', () => {
 
-  // Test for failing with status 404 if blog does not exist
+    // Test for checking whether each blog has a 'id' identifier and its not a '_id'
 
-  // test('Fails with status 404 if blog does not exist', async () => {
-  //   const validNoneExistingId = await helper.nonExistingId()
+    test('The unique identifier is "id"', async () => {
+      const response = await api.get('/api/blogs')
 
-  //   await api
-  //     .get(`/api/blogs/${validNoneExistingId}`)
-  //     .expect(404)
-  // })
+      response.body.forEach(item => {
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(item, 'id'), true)
+      })
+    })
 
-  // Test for failing with status 400 if id is invalid
+    // Test for updating the number of likes for a blog post
 
-  // test('Fails with status 400 id is invalid', async () => {
-  //   const invalidId = '5a3d5da59070081a82a3445'
+    test('Number of likes in a specific blog can be updated', async () => {
+      const blogsAtStart = await helper.blogsInDb()
+      const blogToUpdate = blogsAtStart[0]
 
-  //   await api
-  //     .get(`/api/blogs/${invalidId}`)
-  //     .expect(400)
-  // })
+      const updatedBlog = {
+        'title': '1 Initial title',
+        'author': 'Me',
+        'url': 'https://examplelink.edu',
+        'likes': 999
+      }
 
-  // -------------------------------------------------------
+      await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send(updatedBlog)
+        .expect(200)
 
-  after(async () => {
-    await mongoose.connection.close()
+      const blogsAtEnd = await helper.blogsInDb()
+
+      assert.strictEqual(blogsAtEnd[0].likes, 999)
+    })
+
   })
 
+})
+
+after(async () => {
+  await mongoose.connection.close()
 })
