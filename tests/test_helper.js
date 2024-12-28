@@ -19,7 +19,7 @@ const initialBlogs = [
 
 const nonExistingId = async () => {
   const blog = new Blog( {
-    'title': 'Will remove this soon',
+    'title': 'Non existing blog within DB',
     'author': 'Me',
     'url': 'https://examplelink.edu',
     'likes': 404

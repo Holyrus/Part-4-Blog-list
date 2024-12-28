@@ -33,6 +33,13 @@ beforeEach(async () => {
 
   // ------------------------------------------
 
+  // If we have initial test DB in helper
+
+  // await Blog.deleteMany({})
+  // await Blog.insertMany(helper.initialBlogs)
+
+  // ------------------------------------------
+
   // This code for saving one individual object
 
   // let blogObject = new Blog(helper.initialBlogs[0])
@@ -111,8 +118,8 @@ describe('Database tests', () => {
   // test('Somewhere in blogs there is a title "1 Initial title"', async () => {
   //   const response = await api.get('/api/blogs')
 
-  //   const contents = response.body.map(e => e.title)
-  //   assert.strictEqual(contents.includes('1 Initial title'), true)
+  //   const titles = response.body.map(e => e.title)
+  //   assert.strictEqual(titles.includes('1 Initial title'), true)
   // })
 
   // Adding new blog and verifies the number of blogs returned by
@@ -177,7 +184,7 @@ describe('Database tests', () => {
     assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length, 'Blog count should not increase')
   })
 
-  // // Test for check of ability of fetching individual blog
+  // Test for check of ability of fetching individual blog
 
   // test('A specific blog can be viewed', async () => {
   //   const blogsAtStart = await helper.blogsInDb()
@@ -192,21 +199,72 @@ describe('Database tests', () => {
   //   assert.deepStrictEqual(resultBlog.body, blogToView)
   // })
 
-  // test('A specific blog can be deleted', async () => {
-  //   const blogsAtStart = await helper.blogsInDb()
-  //   const blogToDelete = blogsAtStart[0]
+  // -----------------------------------------------------
+
+  test('A specific blog can be deleted', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    const titles = blogsAtEnd.map(b => b.title)
+    assert(!titles.includes(blogToDelete.title))
+
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+  })
+
+  // -------------------------------------------------------
+
+  // Test for updating the number of likes for a blog post
+
+  test('Number of likes in a specific blog can be updated', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToUpdate = blogsAtStart[0]
+
+    const updatedBlog = {
+      'title': '1 Initial title',
+      'author': 'Me',
+      'url': 'https://examplelink.edu',
+      'likes': 999
+    }
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedBlog)
+      .expect(200)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    assert.strictEqual(blogsAtEnd[0].likes, 999)
+  })
+
+  // -------------------------------------------------------
+
+  // Test for failing with status 404 if blog does not exist
+
+  // test('Fails with status 404 if blog does not exist', async () => {
+  //   const validNoneExistingId = await helper.nonExistingId()
 
   //   await api
-  //     .delete(`/api/blogs/${blogToDelete.id}`)
-  //     .expect(204)
-
-  //   const blogsAtEnd = await helper.blogsInDb()
-
-  //   const titles = blogsAtEnd.map(b => b.title)
-  //   assert(!titles.includes(blogToDelete.title))
-
-  //   assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+  //     .get(`/api/blogs/${validNoneExistingId}`)
+  //     .expect(404)
   // })
+
+  // Test for failing with status 400 if id is invalid
+
+  // test('Fails with status 400 id is invalid', async () => {
+  //   const invalidId = '5a3d5da59070081a82a3445'
+
+  //   await api
+  //     .get(`/api/blogs/${invalidId}`)
+  //     .expect(400)
+  // })
+
+  // -------------------------------------------------------
 
   after(async () => {
     await mongoose.connection.close()

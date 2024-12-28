@@ -20,3 +20,15 @@ Content-Type: application/json
 DELETE http://localhost:3003/api/blogs/676883c3f7db5069fcadcb41
 
 ###
+
+PUT http://localhost:3003/api/blogs/676f71af97f7e515cdce462b
+Content-Type: application/json
+
+{
+  "title": "Without likes",
+  "author": "Me and Umka",
+  "url": "https://examplelink.edu",
+  "likes": 40
+}
+
+###
