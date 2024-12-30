@@ -8,13 +8,13 @@ GET http://localhost:3003/api/blogs/676756fec0a87bddf1605f76
 
 POST http://localhost:3003/api/blogs
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkhvbHlydXMiLCJpZCI6IjY3NzJmZmYzNTA1NDE1NTAwYTcxNDJjYiIsImlhdCI6MTczNTYwMDE4MCwiZXhwIjoxNzM1NjAzNzgwfQ.ACRNVaZzEV82dnn14pTGvBS0_0DiOpF_P-qYTNiVii4
 
 {
   "title": "Second blog of Holyrus",
   "author": "Holyrus",
   "url": "https://examplelink.edu",
-  "likes": 2025,
-  "userId": "6771f5717bf59289fb4a32fe"
+  "likes": 2026
 }
 
 ###
@@ -39,9 +39,9 @@ POST http://localhost:3003/api/users
 Content-Type: application/json
 
 {
-  "username": "Veruya",
-  "name": "Ruslan",
-  "password": "mIka12"
+  "username": "Popopopo",
+  "name": "Fofffof",
+  "password": "P23FFDF3"
 }
 
 ###

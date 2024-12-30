@@ -1,6 +1,16 @@
 const blogRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
+
+// This helper function isolates the token from the authorization header
+const getTokenFrom = request => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
 
 // With using express-async-errors
 // npm install express-async-errors
@@ -15,21 +25,31 @@ blogRouter.get('/', async (request, response) => {
 blogRouter.post('/', async (request, response) => {
   const body = request.body
 
-  const user = await User.findById(body.userId)
+  // Checking the validity of the token with 'jwt.verify'
+  //The object decoded from the token contains the username and id fields, which tell the server who made the request.
+  const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+
+  // If the object decoded from the token does not contain the (decodedToken.id is undefined)
+  // returned 401 unauthorized
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'Token invalid' })
+  }
+
+  const user = await User.findById(decodedToken.id)
 
   const blog = new Blog({
     title: body.title,
     author: body.author,
     url: body.url,
     likes: body.likes,
-    user: user.id
+    user: user._id
   })
 
   const savedBlog = await blog.save()
   user.blogs = user.blogs.concat(savedBlog._id)
   await user.save()
 
-  response.status(201).json(savedBlog)
+  response.json(savedBlog)
 })
 
 blogRouter.get('/:id', async (request, response) => {
