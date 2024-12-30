@@ -10,10 +10,11 @@ POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
 {
-  "title": "Without likes",
-  "author": "Me",
+  "title": "Second blog of Holyrus",
+  "author": "Holyrus",
   "url": "https://examplelink.edu",
-  "likes": 2024
+  "likes": 2025,
+  "userId": "6771f5717bf59289fb4a32fe"
 }
 
 ###
@@ -38,9 +39,9 @@ POST http://localhost:3003/api/users
 Content-Type: application/json
 
 {
-  "username": "root",
-  "name": "Superuser",
-  "password": "salainen"
+  "username": "Veruya",
+  "name": "Ruslan",
+  "password": "mIka12"
 }
 
 ###

@@ -7,7 +7,8 @@ const User = require('../models/user')
 // We dont need to call next(exception) anymore.
 
 blogRouter.get('/', async (request, response) => {
-  const blogs = await Blog.find({})
+  const blogs = await Blog
+    .find({}).populate('user', { username: 1, name: 1 }) // For showing particular values in each blog in DB about user that owns it
   response.json(blogs)
 })
 
