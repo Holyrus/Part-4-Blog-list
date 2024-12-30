@@ -12,7 +12,8 @@ Content-Type: application/json
 {
   "title": "Without likes",
   "author": "Me",
-  "url": "https://examplelink.edu"
+  "url": "https://examplelink.edu",
+  "likes": 2024
 }
 
 ###
@@ -30,5 +31,20 @@ Content-Type: application/json
   "url": "https://examplelink.edu",
   "likes": 40
 }
+
+###
+
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "root",
+  "name": "Superuser",
+  "password": "salainen"
+}
+
+###
+
+DELETE http://localhost:3003/api/users/6771de30a275c4dd0a759c9c
 
 ###
