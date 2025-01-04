@@ -26,8 +26,12 @@ app.use(cors())
 // app.use(express.static('dist'))
 app.use(express.json())
 app.use(middleware.requestLogger)
+app.use(middleware.tokenExtractor)
+// For using the userExtractor with all the routes:
+// app.use(middleware.userExtractor)
 
-app.use('/api/blogs', blogRouter)
+// We can register the userExtractor only executed with path /api/blogs routes:
+app.use('/api/blogs', middleware.userExtractor, blogRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 

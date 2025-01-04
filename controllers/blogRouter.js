@@ -3,20 +3,28 @@ const Blog = require('../models/blog')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 
+// If you have middleware token extractor you dont need this
+
 // This helper function isolates the token from the authorization header
-const getTokenFrom = request => {
-  const authorization = request.get('authorization')
-  if (authorization && authorization.startsWith('Bearer ')) {
-    return authorization.replace('Bearer ', '')
-  }
-  return null
-}
+// const getTokenFrom = request => {
+//   const authorization = request.get('authorization')
+//   if (authorization && authorization.startsWith('Bearer ')) {
+//     return authorization.replace('Bearer ', '')
+//   }
+//   return null
+// }
+
+// ----------------------------------------------------------
 
 // With using express-async-errors
 // npm install express-async-errors
 // We dont need to call next(exception) anymore.
 
 blogRouter.get('/', async (request, response) => {
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return (response.status(401).json({ error: 'Token invalid' }))
+  }
   const blogs = await Blog
     .find({}).populate('user', { username: 1, name: 1 }) // For showing particular values in each blog in DB about user that owns it
   response.json(blogs)
@@ -27,7 +35,7 @@ blogRouter.post('/', async (request, response) => {
 
   // Checking the validity of the token with 'jwt.verify'
   //The object decoded from the token contains the username and id fields, which tell the server who made the request.
-  const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
   // If the object decoded from the token does not contain the (decodedToken.id is undefined)
   // returned 401 unauthorized
@@ -49,7 +57,7 @@ blogRouter.post('/', async (request, response) => {
   user.blogs = user.blogs.concat(savedBlog._id)
   await user.save()
 
-  response.json(savedBlog)
+  response.status(201).json(savedBlog)
 })
 
 blogRouter.get('/:id', async (request, response) => {
@@ -76,8 +84,23 @@ blogRouter.put('/:id', async (request, response) => {
 })
 
 blogRouter.delete('/:id', async (request, response) => {
-  await Blog.findByIdAndDelete(request.params.id)
-  response.status(204).end()
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'Token invalid' })
+  }
+
+  const user = await User.findById(decodedToken.id)
+  const blog = await Blog.findById(request.params.id)
+
+  if (blog.user.toString() === user.id.toString()) {
+    await Blog.findByIdAndDelete(request.params.id)
+    user.blogs = user.blogs.filter(b => b.id.toString() !== request.params.id)
+    await user.save()
+    response.status(204).end()
+  } else {
+    response.status(401).json({ error: 'Invalid operation' })
+  }
 })
 
 // -------------------------------
