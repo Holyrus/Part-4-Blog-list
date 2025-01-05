@@ -8,6 +8,7 @@ const helper = require('./test_helper')
 const api = supertest(app)
 
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 
 describe('When there is initialy some blogs saved', () => {
@@ -38,13 +39,31 @@ describe('When there is initialy some blogs saved', () => {
   // Doing this for ensuring that every test run DB is the same
 
   beforeEach(async () => {
+    await User.deleteMany({})
+    await api
+      .post('/api/users')
+      .send(helper.initialUser[0])
+
     await Blog.deleteMany({})
+
+    const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+    const token = res.body.token
+
+    await api
+      .post('/api/blogs')
+      .send(helper.initialBlogs[0])
+      .set('Authorization', `Bearer ${token}`)
+
+    await api
+      .post('/api/blogs')
+      .send(helper.initialBlogs[1])
+      .set('Authorization', `Bearer ${token}`)
 
     // This code for executing the promises it receives in parallel
 
-    const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
-    const promiseArray = blogObjects.map(blog => blog.save())
-    await Promise.all(promiseArray)
+    // const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
+    // const promiseArray = blogObjects.map(blog => blog.save())
+    // await Promise.all(promiseArray)
 
     // ------------------------------------------
 
@@ -78,15 +97,23 @@ describe('When there is initialy some blogs saved', () => {
   // -------------------------------------------------
 
   test('Blogs are returned as json', async () => {
-    console.log('Entered test')
+    const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+    const token = res.body.token
+
     await api
       .get('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /application\/json/)
   })
 
   test('All blogs are returned', async () => {
-    const response = await api.get('/api/blogs')
+    const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+    const token = res.body.token
+
+    const response = await api
+      .get('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
 
     assert.strictEqual(response.body.length, helper.initialBlogs.length)
   })
@@ -143,6 +170,9 @@ describe('When there is initialy some blogs saved', () => {
     // the API increases and that the newly added blog is in the list.
 
     test('A valid blog can be added ', async () => {
+      const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+      const token = res.body.token
+
       const newBlog = {
         'title': 'Test blog',
         'author': 'Me',
@@ -153,6 +183,7 @@ describe('When there is initialy some blogs saved', () => {
       await api
         .post('/api/blogs')
         .send(newBlog)
+        .set('Authorization', `Bearer ${token}`)
         .expect(201)
         .expect('Content-Type', /application\/json/)
 
@@ -166,6 +197,9 @@ describe('When there is initialy some blogs saved', () => {
     // Test that verifies that a blog without title won't be saved into the DB
 
     test('Fails with status 400 if data invalid (Blog without title not added)', async () => {
+      const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+      const token = res.body.token
+
       const newBlog = {
         'author': 'Me',
         'url': 'https://examplelink.edu',
@@ -175,6 +209,7 @@ describe('When there is initialy some blogs saved', () => {
       await api
         .post ('/api/blogs')
         .send(newBlog)
+        .set('Authorization', `Bearer ${token}`)
         .expect(400)
 
       const blogsAtEnd = await helper.blogsInDb()
@@ -185,6 +220,9 @@ describe('When there is initialy some blogs saved', () => {
     // Test that verifies that a blog without url won't be saved into the DB
 
     test('Blog without url is not added', async () => {
+      const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+      const token = res.body.token
+
       const newBlog = {
         'title': 'Without url',
         'author': 'Me',
@@ -194,6 +232,7 @@ describe('When there is initialy some blogs saved', () => {
       await api
         .post('/api/blogs')
         .send(newBlog)
+        .set('Authorization', `Bearer ${token}`)
         .expect(400)
 
       const blogsAtEnd = await helper.blogsInDb()
@@ -204,6 +243,9 @@ describe('When there is initialy some blogs saved', () => {
     // Test that verifies if 'likes' value is missing it will defaults it to 0
 
     test('Defaults likes to 0 if missing', async () => {
+      const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+      const token = res.body.token
+
       const blogWithoutLikes = {
         'title': 'Without likes',
         'author': 'Me',
@@ -213,6 +255,7 @@ describe('When there is initialy some blogs saved', () => {
       await api
         .post('/api/blogs')
         .send(blogWithoutLikes)
+        .set('Authorization', `Bearer ${token}`)
         .expect(201)
         .expect('Content-Type', /application\/json/)
 
@@ -229,11 +272,15 @@ describe('When there is initialy some blogs saved', () => {
     // Test that verifies that a specific blog can be deleted from DB
 
     test('A specific blog can be deleted', async () => {
+      const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+      const token = res.body.token
+
       const blogsAtStart = await helper.blogsInDb()
       const blogToDelete = blogsAtStart[0]
 
       await api
         .delete(`/api/blogs/${blogToDelete.id}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(204)
 
       const blogsAtEnd = await helper.blogsInDb()
@@ -251,7 +298,12 @@ describe('When there is initialy some blogs saved', () => {
     // Test for checking whether each blog has a 'id' identifier and its not a '_id'
 
     test('The unique identifier is "id"', async () => {
-      const response = await api.get('/api/blogs')
+      const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+      const token = res.body.token
+
+      const response = await api
+        .get('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
 
       response.body.forEach(item => {
         assert.strictEqual(Object.prototype.hasOwnProperty.call(item, 'id'), true)
@@ -261,6 +313,9 @@ describe('When there is initialy some blogs saved', () => {
     // Test for updating the number of likes for a blog post
 
     test('Number of likes in a specific blog can be updated', async () => {
+      const res = await api.post('/api/login').send({ username: helper.initialUser[0].username, password: helper.initialUser[0].password })
+      const token = res.body.token
+
       const blogsAtStart = await helper.blogsInDb()
       const blogToUpdate = blogsAtStart[0]
 
@@ -274,6 +329,7 @@ describe('When there is initialy some blogs saved', () => {
       await api
         .put(`/api/blogs/${blogToUpdate.id}`)
         .send(updatedBlog)
+        .set('Authorization', `Bearer ${token}`)
         .expect(200)
 
       const blogsAtEnd = await helper.blogsInDb()

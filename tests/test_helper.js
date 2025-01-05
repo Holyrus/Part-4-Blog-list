@@ -1,6 +1,14 @@
 const Blog = require('../models/blog')
 const User = require('../models/user')
 
+const initialUser = [
+  {
+    'username': 'TestUser',
+    'name': 'Test Name',
+    'password': 'TestPassword123'
+  }
+]
+
 // Initialize the test database before executing all tests
 
 const initialBlogs = [
@@ -42,6 +50,7 @@ const usersInDb = async () => {
 }
 
 module.exports = {
+  initialUser,
   initialBlogs,
   nonExistingId,
   blogsInDb,
