@@ -18,6 +18,19 @@ Authorization: Bearer
 }
 
 ###
+
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlZlcm9uaWthIiwiaWQiOiI2NzdjNzNiODdiNTM2NzY2Njk2YTFkZTYiLCJpYXQiOjE3MzYyMDkzNzAsImV4cCI6MTczNjIxMjk3MH0.x82LlUUX0NY2RWJ4K70BC0YduszBbCqCnr_Cwcr_4YI
+
+{
+  "title": "Blog Vero",
+  "author": "Veronika",
+  "url": "https://examplelink.edu",
+  "likes": 123
+}
+
+###
 DELETE http://localhost:3003/api/blogs/67788ec78804f7fa03b26fdc
 Authorization: Bearer 
 
@@ -39,9 +52,9 @@ POST http://localhost:3003/api/users
 Content-Type: application/json
 
 {
-  "username": "Popopopo",
-  "name": "Fofffof",
-  "password": "P23FFDF3"
+  "username": "Veronika",
+  "name": "Vero",
+  "password": "Umka1234"
 }
 
 ###
