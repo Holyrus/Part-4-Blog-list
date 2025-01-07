@@ -2,6 +2,7 @@ const blogRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
+const middleware = require('../utils/middleware')
 
 // If you have middleware token extractor you dont need this
 
@@ -30,7 +31,7 @@ blogRouter.get('/', async (request, response) => {
   response.json(blogs)
 })
 
-blogRouter.post('/', async (request, response) => {
+blogRouter.post('/', middleware.userExtractor, async (request, response) => {
   const body = request.body
 
   // Checking the validity of the token with 'jwt.verify'
@@ -69,7 +70,7 @@ blogRouter.get('/:id', async (request, response) => {
   }
 })
 
-blogRouter.put('/:id', async (request, response) => {
+blogRouter.put('/:id', middleware.userExtractor, async (request, response) => {
   const body = request.body
 
   const blog = {
@@ -83,7 +84,7 @@ blogRouter.put('/:id', async (request, response) => {
   response.json(blog)
 })
 
-blogRouter.delete('/:id', async (request, response) => {
+blogRouter.delete('/:id', middleware.userExtractor, async (request, response) => {
   const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
   if (!decodedToken.id) {
