@@ -21,7 +21,7 @@ Authorization: Bearer
 
 POST http://localhost:3003/api/blogs
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlZlcm9uaWthIiwiaWQiOiI2NzdjNzNiODdiNTM2NzY2Njk2YTFkZTYiLCJpYXQiOjE3MzYyMDkzNzAsImV4cCI6MTczNjIxMjk3MH0.x82LlUUX0NY2RWJ4K70BC0YduszBbCqCnr_Cwcr_4YI
+Authorization: Bearer 
 
 {
   "title": "Blog Vero",
@@ -36,14 +36,15 @@ Authorization: Bearer
 
 ###
 
-PUT http://localhost:3003/api/blogs/676f71af97f7e515cdce462b
+PUT http://localhost:3003/api/blogs/67730654803ecfa39b90ad4e
 Content-Type: application/json
+Authorization: Bearer 
 
 {
-  "title": "Without likes",
-  "author": "Me and Umka",
+  "title": "Firts blog of Holyrus",
+  "author": "Holyrus",
   "url": "https://examplelink.edu",
-  "likes": 40
+  "likes": 2026
 }
 
 ###
